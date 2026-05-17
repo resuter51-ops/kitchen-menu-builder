@@ -325,12 +325,21 @@ var DICT = {
 
 function translate(text) {
   var t = text.toLowerCase().trim();
-  // exact match
+  // 1. Exact match
   if (DICT[t]) return DICT[t];
-  // try removing leading/trailing filler words
-  t = t.replace(/^(a |an |the |some |fresh |hot |cold |warm |grilled |baked |steamed |boiled |roasted |fried )/,'').trim();
-  if (DICT[t]) return DICT[t];
-  // partial match — find longest key that appears in the phrase
+  // 2. Strip leading adjectives and retry
+  var stripped = t.replace(/^(a |an |the |some |fresh |hot |cold |warm |grilled |baked |steamed |boiled |roasted |fried )+/,'').trim();
+  if (DICT[stripped]) return DICT[stripped];
+  // 3. Word-by-word translation for multi-word phrases not in dict
+  //    Split into words, translate each known word, keep unknown words as-is
+  var words = t.split(' ');
+  var translated = words.map(function(w) {
+    return DICT[w] || w;
+  });
+  var wordResult = translated.join(' ');
+  // Only return word-by-word if at least one word was translated
+  if (wordResult !== t) return wordResult;
+  // 4. Longest-key partial match
   var best = '', bestLen = 0;
   for (var key in DICT) {
     if (t.indexOf(key) !== -1 && key.length > bestLen) {
@@ -338,15 +347,16 @@ function translate(text) {
     }
   }
   if (best) return best;
-  // capitalize original as fallback
+  // 5. Capitalize original as fallback
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // ── SPEECH RECOGNITION ───────────────────────────
 var activeMeal = null;
 var recog = null;
-var finalTranscript = '';
+var committedItems = { b: [], c_l: [], c_d: [] }; // not used directly
 var manualStop = false;
+var sessionFinal = ''; // only tracks NEW text since last restart
 
 function toggleMic(meal) {
   if (activeMeal === meal) {
@@ -364,7 +374,7 @@ function toggleMic(meal) {
     }
     activeMeal = meal;
     manualStop = false;
-    finalTranscript = '';
+    sessionFinal = '';
     startRecog(meal);
     setBtn(meal, true);
   }
@@ -389,96 +399,64 @@ function stopRecog() {
   }
 }
 
-function startRecog(meal) {
+function makeRecog(meal) {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Speech recognition not supported. Use Chrome or Safari.'); return; }
+  if (!SR) { alert('Speech recognition not supported. Use Chrome or Safari.'); return null; }
+  var r = new SR();
+  r.lang = 'en-US';
+  r.continuous = true;
+  r.interimResults = true;
 
-  recog = new SR();
-  recog.lang = 'en-US';
-  recog.continuous = true;
-  recog.interimResults = true;
-
-  recog.onresult = function(e) {
+  r.onresult = function(e) {
     var interim = '';
     for (var i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) {
-        finalTranscript += e.results[i][0].transcript + ' ';
+        sessionFinal += e.results[i][0].transcript + ' ';
+        // Immediately parse and dedupe into items[meal]
+        var newItems = parseItems(sessionFinal);
+        mergeItems(meal, newItems);
+        sessionFinal = ''; // reset so next final result doesn't re-add same text
       } else {
         interim += e.results[i][0].transcript;
       }
     }
-    // Parse what we have so far into items
-    var parsed = parseItems(finalTranscript);
-    renderLive(meal, parsed, interim);
+    renderLive(meal, items[meal], interim);
   };
 
-  recog.onend = function() {
+  r.onend = function() {
     if (!manualStop && activeMeal === meal) {
-      // Auto-restarted by browser — restart immediately
       setTimeout(function() {
         if (!manualStop && activeMeal === meal) {
-          startRecogContinue(meal);
+          recog = makeRecog(meal);
+          if (recog) recog.start();
         }
       }, 80);
     } else {
-      // Manual stop — save items
-      var parsed = parseItems(finalTranscript);
-      items[meal] = parsed;
-      renderLive(meal, parsed, '');
+      renderLive(meal, items[meal], '');
       updateCount(meal);
     }
   };
 
-  recog.onerror = function(e) {
-    if (e.error !== 'no-speech' && e.error !== 'aborted') {
-      console.log('mic error:', e.error);
-    }
-  };
-
-  recog.start();
-}
-
-function startRecogContinue(meal) {
-  // Restart without resetting finalTranscript
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recog = new SR();
-  recog.lang = 'en-US';
-  recog.continuous = true;
-  recog.interimResults = true;
-
-  recog.onresult = function(e) {
-    var interim = '';
-    for (var i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        finalTranscript += e.results[i][0].transcript + ' ';
-      } else {
-        interim += e.results[i][0].transcript;
-      }
-    }
-    var parsed = parseItems(finalTranscript);
-    renderLive(meal, parsed, interim);
-  };
-
-  recog.onend = function() {
-    if (!manualStop && activeMeal === meal) {
-      setTimeout(function() {
-        if (!manualStop && activeMeal === meal) {
-          startRecogContinue(meal);
-        }
-      }, 80);
-    } else {
-      var parsed = parseItems(finalTranscript);
-      items[meal] = parsed;
-      renderLive(meal, parsed, '');
-      updateCount(meal);
-    }
-  };
-
-  recog.onerror = function(e) {
+  r.onerror = function(e) {
     if (e.error !== 'no-speech' && e.error !== 'aborted') console.log('mic error:', e.error);
   };
+  return r;
+}
 
-  recog.start();
+function startRecog(meal) {
+  sessionFinal = '';
+  recog = makeRecog(meal);
+  if (recog) recog.start();
+}
+
+function mergeItems(meal, newItems) {
+  newItems.forEach(function(item) {
+    var key = item.toLowerCase().trim();
+    var already = items[meal].some(function(x){ return x.toLowerCase().trim() === key; });
+    if (!already && key.length > 1) {
+      items[meal].push(item);
+    }
+  });
 }
 
 function parseItems(text) {
@@ -588,7 +566,7 @@ function clearAll() {
   stopRecog();
   if (activeMeal) { setBtn(activeMeal, false); activeMeal = null; }
   items = { b: [], l: [], d: [] };
-  finalTranscript = '';
+  sessionFinal = '';
   ['b','l','d'].forEach(function(m) {
     document.getElementById('live-' + m).innerHTML = '<div class="live-empty">Items will appear here as you speak...</div>';
     document.getElementById('count-' + m).textContent = '';
