@@ -19,7 +19,6 @@ body {
 .header h1 { font-size: 1.5rem; font-weight: 900; }
 .header p { color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 3px; }
 .main { max-width: 600px; margin: 0 auto; padding: 16px; }
-
 .date-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .date-row label { font-weight: 700; white-space: nowrap; }
 .date-row input {
@@ -27,13 +26,11 @@ body {
   border: 1px solid rgba(255,255,255,0.3);
   background: rgba(255,255,255,0.12); color: white; font-size: 0.9rem; outline: none;
 }
-
 .card {
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
   border-radius: 18px; padding: 16px; margin-bottom: 14px;
 }
 .meal-label { color: #f39c12; font-weight: 900; font-size: 1rem; margin-bottom: 10px; }
-
 .mic-btn {
   width: 100%; padding: 18px; border: none; border-radius: 14px;
   font-size: 1rem; font-weight: 800; cursor: pointer; margin-bottom: 10px;
@@ -49,7 +46,6 @@ body {
   70%  { box-shadow: 0 0 0 12px rgba(231,76,60,0); }
   100% { box-shadow: 0 0 0 0 rgba(231,76,60,0); }
 }
-
 .live-box {
   background: rgba(0,0,0,0.4); border-radius: 10px;
   padding: 10px 14px; min-height: 60px;
@@ -61,14 +57,13 @@ body {
   display: flex; justify-content: space-between; align-items: center;
 }
 .live-item:last-child { border-bottom: none; }
-.live-interim { color: rgba(255,255,0,0.7); font-size: 0.85rem; font-style: italic; padding: 3px 0; }
+.live-interim { color: rgba(255,255,0,0.8); font-size: 0.85rem; font-style: italic; padding: 3px 0; }
 .live-empty { color: rgba(255,255,255,0.25); font-style: italic; font-size: 0.82rem; }
-.del-item {
-  background: none; border: none; color: rgba(255,100,100,0.7);
+.del-btn {
+  background: none; border: none; color: rgba(255,100,100,0.8);
   font-size: 1rem; cursor: pointer; padding: 0 4px; flex-shrink: 0;
 }
 .item-count { color: #2ecc71; font-size: 0.75rem; margin-top: 4px; text-align: right; }
-
 .build-btn {
   width: 100%; padding: 16px; margin-bottom: 10px;
   background: linear-gradient(135deg, #27ae60, #2ecc71);
@@ -82,8 +77,6 @@ body {
   font-size: 0.9rem; cursor: pointer;
 }
 .status { text-align: center; color: #f39c12; font-weight: 700; min-height: 22px; margin-bottom: 14px; font-size: 0.95rem; }
-
-/* OUTPUT */
 #output {
   background: white; border-radius: 16px; padding: 22px;
   margin-bottom: 14px; box-shadow: 0 6px 28px rgba(0,0,0,0.5); display: none;
@@ -100,20 +93,15 @@ hr.div { border: none; border-top: 2px solid #2d5a2d; margin: 10px 0; }
   text-transform: uppercase; letter-spacing: 1px;
   border-bottom: 1px solid #ccc; padding-bottom: 3px; margin-bottom: 7px;
 }
-.orow {
-  display: flex; flex-direction: column;
-  padding: 5px 0; border-bottom: 1px dotted #eee;
-}
+.orow { display: flex; flex-direction: column; padding: 5px 0; border-bottom: 1px dotted #eee; }
 .oen { color: #111; font-size: 0.93rem; font-weight: 600; }
 .oes { color: #2d5a2d; font-style: italic; font-size: 0.88rem; padding-left: 10px; }
-
 #printbtn {
   width: 100%; padding: 14px; display: none;
   background: linear-gradient(135deg, #2d5a2d, #27ae60);
   color: white; border: none; border-radius: 14px;
   font-size: 1rem; font-weight: 900; cursor: pointer;
 }
-
 @media print {
   body { background: white !important; padding: 0; }
   .header, .main > *:not(#output) { display: none !important; }
@@ -122,21 +110,18 @@ hr.div { border: none; border-top: 2px solid #2d5a2d; margin: 10px 0; }
 </style>
 </head>
 <body>
-
 <div class="header">
   <div style="font-size:1.8rem">🍽️</div>
   <h1>Kitchen Menu Builder</h1>
-  <p>Voice-activated · English &amp; Spanish · Tap mic, speak, stop, print</p>
+  <p>Voice-activated · English &amp; Spanish · Tap mic, speak the whole meal, tap to stop</p>
 </div>
 
 <div class="main">
-
   <div class="date-row">
     <label>📅</label>
     <input type="text" id="menudate"/>
   </div>
 
-  <!-- BREAKFAST -->
   <div class="card">
     <div class="meal-label">🌅 BREAKFAST / DESAYUNO</div>
     <button class="mic-btn" id="mbtn-b" onclick="toggleMic('b')">🎤 Tap to Speak Breakfast — tap again to stop</button>
@@ -144,7 +129,6 @@ hr.div { border: none; border-top: 2px solid #2d5a2d; margin: 10px 0; }
     <div class="item-count" id="count-b"></div>
   </div>
 
-  <!-- LUNCH -->
   <div class="card">
     <div class="meal-label">☀️ LUNCH / ALMUERZO</div>
     <button class="mic-btn" id="mbtn-l" onclick="toggleMic('l')">🎤 Tap to Speak Lunch — tap again to stop</button>
@@ -152,7 +136,6 @@ hr.div { border: none; border-top: 2px solid #2d5a2d; margin: 10px 0; }
     <div class="item-count" id="count-l"></div>
   </div>
 
-  <!-- DINNER -->
   <div class="card">
     <div class="meal-label">🌙 DINNER / CENA</div>
     <button class="mic-btn" id="mbtn-d" onclick="toggleMic('d')">🎤 Tap to Speak Dinner — tap again to stop</button>
@@ -175,28 +158,29 @@ hr.div { border: none; border-top: 2px solid #2d5a2d; margin: 10px 0; }
     <div id="obody"></div>
   </div>
   <button id="printbtn" onclick="window.print()">🖨️ Print Menu</button>
-
 </div>
 
 <script>
-// ── DATE ──────────────────────────────────────────
+// ── DATE ──────────────────────────────────────────────────────────
 var DN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var d = new Date();
-document.getElementById('menudate').value = DN[d.getDay()] + ', ' + MN[d.getMonth()] + ' ' + d.getDate();
+var nd = new Date();
+document.getElementById('menudate').value = DN[nd.getDay()] + ', ' + MN[nd.getMonth()] + ' ' + nd.getDate();
 
-// ── ITEMS STORAGE ─────────────────────────────────
+// ── STATE ─────────────────────────────────────────────────────────
+// items[meal] = array of English strings the user spoke
 var items = { b: [], l: [], d: [] };
+var activeMeal = null;   // which meal is currently recording
+var recog = null;        // SpeechRecognition instance
+var stopping = false;    // true when user manually tapped stop
 
-// ── FOOD DICTIONARY ───────────────────────────────
+// ── FOOD DICTIONARY ───────────────────────────────────────────────
 var DICT = {
-  // EGGS
   'scrambled eggs':'huevos revueltos','fried eggs':'huevos fritos',
   'poached eggs':'huevos pochados','hard boiled eggs':'huevos duros',
   'soft boiled eggs':'huevos tibios','eggs':'huevos','egg':'huevo',
   'bacon and eggs':'tocino y huevos','ham and eggs':'jamón y huevos',
   'sausage and eggs':'salchicha y huevos',
-  // MEATS
   'bacon':'tocino','sausage':'salchicha','ham':'jamón','turkey':'pavo',
   'chicken':'pollo','beef':'carne de res','pork':'cerdo','fish':'pescado',
   'tuna':'atún','salmon':'salmón','shrimp':'camarones',
@@ -206,23 +190,19 @@ var DICT = {
   'grilled chicken':'pollo a la parrilla','fried chicken':'pollo frito',
   'roast beef':'carne asada','meatloaf':'pastel de carne',
   'pork chop':'chuleta de cerdo','pork chops':'chuletas de cerdo',
-  // BREAD
   'toast':'tostada','white toast':'tostada blanca','wheat toast':'tostada de trigo',
   'rye toast':'tostada de centeno','whole wheat toast':'tostada integral',
   'english muffin':'muffin inglés','bagel':'bagel','roll':'panecillo',
   'dinner roll':'panecillo de cena','biscuit':'galleta','biscuits':'galletas',
   'cornbread':'pan de maíz','bread':'pan','white bread':'pan blanco',
   'wheat bread':'pan de trigo','garlic bread':'pan de ajo',
-  // SPREADS
   'butter':'mantequilla','jelly':'mermelada','jam':'mermelada','honey':'miel',
   'peanut butter':'mantequilla de cacahuate','cream cheese':'queso crema',
   'syrup':'jarabe','maple syrup':'jarabe de arce',
-  // BREAKFAST ITEMS
   'pancakes':'panqueques','french toast':'tostada francesa','waffles':'waffles',
   'oatmeal':'avena','cereal':'cereal','grits':'sémola de maíz',
   'yogurt':'yogur','muffin':'muffin','granola':'granola',
   'hash browns':'papas ralladas fritas','home fries':'papas caseras',
-  // SOUPS
   'soup':'sopa','chicken soup':'sopa de pollo','vegetable soup':'sopa de verduras',
   'tomato soup':'sopa de tomate','beef soup':'sopa de res',
   'chicken noodle soup':'sopa de pollo con fideos',
@@ -231,12 +211,10 @@ var DICT = {
   'bouillon':'caldo','broth':'caldo','minestrone':'minestrone',
   'clam chowder':'sopa de almejas','cream of mushroom':'crema de champiñones',
   'cream of potato':'crema de papa',
-  // SALADS
   'salad':'ensalada','green salad':'ensalada verde','house salad':'ensalada de la casa',
   'caesar salad':'ensalada César','fruit salad':'ensalada de frutas',
   'coleslaw':'ensalada de repollo','potato salad':'ensalada de papa',
   'pasta salad':'ensalada de pasta','macaroni salad':'ensalada de macarrones',
-  // VEGETABLES
   'vegetables':'verduras','mixed vegetables':'verduras mixtas',
   'green beans':'ejotes','peas':'chícharos','corn':'maíz',
   'carrots':'zanahorias','broccoli':'brócoli','cauliflower':'coliflor',
@@ -246,14 +224,12 @@ var DICT = {
   'lettuce':'lechuga','onion':'cebolla','pepper':'pimiento',
   'mushroom':'champiñón','mushrooms':'champiñones','asparagus':'espárragos',
   'sweet potato':'camote','yam':'ñame',
-  // STARCHES
   'mashed potatoes':'puré de papas','baked potato':'papa al horno',
   'french fries':'papas fritas','potato':'papa','potatoes':'papas',
   'rice':'arroz','white rice':'arroz blanco','brown rice':'arroz integral',
   'fried rice':'arroz frito','pasta':'pasta','spaghetti':'espagueti',
   'macaroni':'macarrones','macaroni and cheese':'macarrones con queso',
   'noodles':'fideos','stuffing':'relleno','dressing':'aderezo',
-  // DESSERTS
   'cake':'pastel','chocolate cake':'pastel de chocolate','carrot cake':'pastel de zanahoria',
   'pie':'pay','apple pie':'pay de manzana','pumpkin pie':'pay de calabaza',
   'cherry pie':'pay de cereza','peach pie':'pay de durazno',
@@ -266,7 +242,8 @@ var DICT = {
   'orange':'naranja','grapes':'uvas','strawberries':'fresas',
   'blueberries':'arándanos','peach':'durazno','pear':'pera','melon':'melón',
   'watermelon':'sandía','cantaloupe':'melón cantalupo',
-  // DRINKS - COFFEE
+  'applesauce':'compota de manzana','cranberry sauce':'salsa de arándano',
+  'mixed fruit':'fruta mixta','fruit cup':'copa de fruta',
   'coffee':'café','hot coffee':'café caliente',
   'decaf coffee':'café descafeinado','decaf':'descafeinado',
   'one ounce coffee':'café de una onza','two ounce coffee':'café de dos onzas',
@@ -277,215 +254,176 @@ var DICT = {
   'seven ounce coffee':'café de siete onzas','seven oz coffee':'café de siete onzas',
   'eight ounce coffee':'café de ocho onzas','eight oz coffee':'café de ocho onzas',
   'ten ounce coffee':'café de diez onzas','twelve ounce coffee':'café de doce onzas',
-  // DRINKS - TEA
   'tea':'té','hot tea':'té caliente','iced tea':'té helado',
   'green tea':'té verde','herbal tea':'té de hierbas',
   'decaf tea':'té descafeinado','chamomile tea':'té de manzanilla',
-  // DRINKS - MILK
   'milk':'leche','whole milk':'leche entera','skim milk':'leche descremada',
   'two percent milk':'leche al dos por ciento','chocolate milk':'leche de chocolate',
-  // DRINKS - JUICE
   'juice':'jugo','orange juice':'jugo de naranja','apple juice':'jugo de manzana',
   'grape juice':'jugo de uva','cranberry juice':'jugo de arándano',
   'prune juice':'jugo de ciruela','tomato juice':'jugo de tomate',
   'pineapple juice':'jugo de piña','grapefruit juice':'jugo de toronja',
-  // DRINKS - OTHER
   'water':'agua','ice water':'agua con hielo','hot water':'agua caliente',
   'sparkling water':'agua mineral','lemonade':'limonada',
   'hot chocolate':'chocolate caliente','cocoa':'cocoa',
   'soda':'refresco','diet soda':'refresco de dieta',
   'ginger ale':'ginger ale','sprite':'sprite','cola':'cola',
   'ensure':'ensure','boost':'boost','protein shake':'batido de proteína',
-  // CONDIMENTS
   'cream':'crema','one cream':'una crema','two creams':'dos cremas',
   'three creams':'tres cremas','four creams':'cuatro cremas',
   'sugar':'azúcar','one sugar':'un azúcar','two sugars':'dos azúcares',
-  'sweet and low':'Sweet and Low','one sweet and low':'un Sweet and Low',
-  'two sweet and low':'dos Sweet and Low','three sweet and low':'tres Sweet and Low',
+  'sweet and low':'Sweet and Low',
+  'one sweet and low':'un Sweet and Low',
+  'two sweet and low':'dos Sweet and Low',
+  'three sweet and low':'tres Sweet and Low',
   'splenda':'Splenda','one splenda':'un Splenda','two splenda':'dos Splenda',
   'equal':'Equal','stevia':'stevia','lemon':'limón','lemon wedge':'rodaja de limón',
   'ketchup':'catsup','mustard':'mostaza','mayo':'mayonesa','mayonnaise':'mayonesa',
-  'salt':'sal','pepper shaker':'pimienta','salsa':'salsa',
+  'salt':'sal','salsa':'salsa',
   'ranch':'aderezo ranch','italian dressing':'aderezo italiano',
   'thousand island':'aderezo Thousand Island','vinaigrette':'vinagreta',
   'gravy':'salsa de carne','hot sauce':'salsa picante','soy sauce':'salsa de soja',
-  // MISC
   'sandwich':'sándwich','wrap':'wrap','burrito':'burrito','taco':'taco',
   'quesadilla':'quesadilla','pizza':'pizza','quiche':'quiche',
   'omelet':'omelette','frittata':'frittata',
   'cheese':'queso','cottage cheese':'queso cottage','swiss cheese':'queso suizo',
   'cheddar cheese':'queso cheddar','american cheese':'queso americano',
-  'hard boiled egg':'huevo duro','deviled eggs':'huevos rellenos',
-  'applesauce':'compota de manzana','cranberry sauce':'salsa de arándano',
-  'mixed fruit':'fruta mixta','fruit cup':'copa de fruta',
+  'deviled eggs':'huevos rellenos','hard boiled egg':'huevo duro',
   'dinner':'cena','lunch':'almuerzo','breakfast':'desayuno',
   'special':'especial del día','daily special':'especial del día',
   'vegetarian':'vegetariano','vegan':'vegano','gluten free':'sin gluten'
 };
 
-function translate(text) {
-  var t = text.toLowerCase().trim();
+function translate(raw) {
+  var t = raw.toLowerCase().trim().replace(/\s+/g,' ');
   // 1. Exact match
   if (DICT[t]) return DICT[t];
-  // 2. Strip leading adjectives and retry
-  var stripped = t.replace(/^(a |an |the |some |fresh |hot |cold |warm |grilled |baked |steamed |boiled |roasted |fried )+/,'').trim();
-  if (DICT[stripped]) return DICT[stripped];
-  // 3. Word-by-word translation for multi-word phrases not in dict
-  //    Split into words, translate each known word, keep unknown words as-is
-  var words = t.split(' ');
-  var translated = words.map(function(w) {
-    return DICT[w] || w;
-  });
-  var wordResult = translated.join(' ');
-  // Only return word-by-word if at least one word was translated
-  if (wordResult !== t) return wordResult;
-  // 4. Longest-key partial match
-  var best = '', bestLen = 0;
-  for (var key in DICT) {
-    if (t.indexOf(key) !== -1 && key.length > bestLen) {
-      best = DICT[key]; bestLen = key.length;
+  // 2. Strip leading adjectives
+  var s = t.replace(/^(a |an |the |some |fresh |hot |cold |warm |grilled |baked |steamed |boiled |roasted |fried )+/,'').trim();
+  if (DICT[s]) return DICT[s];
+  // 3. Longest key contained in phrase
+  var best = null, bestLen = 0;
+  var keys = Object.keys(DICT);
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    if (t.indexOf(k) !== -1 && k.length > bestLen) {
+      best = DICT[k]; bestLen = k.length;
     }
   }
   if (best) return best;
-  // 5. Capitalize original as fallback
-  return text.charAt(0).toUpperCase() + text.slice(1);
+  // 4. Word-by-word fallback
+  var words = t.split(' ');
+  var out = words.map(function(w){ return DICT[w] || w; });
+  return out.join(' ');
 }
 
-// ── SPEECH RECOGNITION ───────────────────────────
-var activeMeal = null;
-var recog = null;
-var committedItems = { b: [], c_l: [], c_d: [] }; // not used directly
-var manualStop = false;
-var sessionFinal = ''; // only tracks NEW text since last restart
-
+// ── RECORDING ─────────────────────────────────────────────────────
 function toggleMic(meal) {
   if (activeMeal === meal) {
-    // STOP
-    manualStop = true;
-    stopRecog();
+    // User tapped STOP
+    stopping = true;
+    if (recog) { try { recog.stop(); } catch(e){} }
     setBtn(meal, false);
     activeMeal = null;
   } else {
-    // Stop any other active mic first
+    // Stop any other meal first
     if (activeMeal) {
-      manualStop = true;
-      stopRecog();
+      stopping = true;
+      if (recog) { try { recog.stop(); } catch(e){} }
       setBtn(activeMeal, false);
     }
     activeMeal = meal;
-    manualStop = false;
-    sessionFinal = '';
-    startRecog(meal);
+    stopping = false;
+    startListening(meal);
     setBtn(meal, true);
   }
 }
 
 function setBtn(meal, on) {
   var btn = document.getElementById('mbtn-' + meal);
-  var labels = { b:'Breakfast', l:'Lunch', d:'Dinner' };
+  var label = { b:'Breakfast', l:'Lunch', d:'Dinner' }[meal];
   if (on) {
     btn.className = 'mic-btn on';
-    btn.textContent = '⏹️ Tap to STOP recording ' + labels[meal];
+    btn.textContent = '⏹️ Tap to STOP — recording ' + label + '...';
   } else {
     btn.className = 'mic-btn';
-    btn.textContent = '🎤 Tap to Speak ' + labels[meal] + ' — tap again to stop';
+    btn.textContent = '🎤 Tap to Speak ' + label + ' — tap again to stop';
   }
 }
 
-function stopRecog() {
-  if (recog) {
-    try { recog.stop(); } catch(e) {}
-    recog = null;
-  }
-}
-
-function makeRecog(meal) {
+function startListening(meal) {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Speech recognition not supported. Use Chrome or Safari.'); return null; }
-  var r = new SR();
-  r.lang = 'en-US';
-  r.continuous = true;
-  r.interimResults = true;
+  if (!SR) { alert('Speech recognition not supported. Please use Chrome.'); return; }
 
-  r.onresult = function(e) {
+  recog = new SR();
+  recog.lang = 'en-US';
+  recog.continuous = true;
+  recog.interimResults = true;
+  recog.maxAlternatives = 1;
+
+  // We collect ALL final text here across restarts
+  // Items are parsed only when user stops — no mid-stream parsing to avoid duplicates
+  var allFinalText = '';
+
+  recog.onresult = function(e) {
     var interim = '';
     for (var i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) {
-        sessionFinal += e.results[i][0].transcript + ' ';
-        // Immediately parse and dedupe into items[meal]
-        var newItems = parseItems(sessionFinal);
-        mergeItems(meal, newItems);
-        sessionFinal = ''; // reset so next final result doesn't re-add same text
+        allFinalText += e.results[i][0].transcript + ', ';
       } else {
         interim += e.results[i][0].transcript;
       }
     }
-    renderLive(meal, items[meal], interim);
+    // Show live preview of what's been said so far (not parsed yet, just raw text)
+    showLiveRaw(meal, allFinalText, interim);
   };
 
-  r.onend = function() {
-    if (!manualStop && activeMeal === meal) {
-      setTimeout(function() {
-        if (!manualStop && activeMeal === meal) {
-          recog = makeRecog(meal);
-          if (recog) recog.start();
+  recog.onend = function() {
+    if (!stopping && activeMeal === meal) {
+      // Browser auto-stopped — restart and keep the same allFinalText
+      var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
+      var r2 = new SR2();
+      r2.lang = 'en-US';
+      r2.continuous = true;
+      r2.interimResults = true;
+      r2.maxAlternatives = 1;
+
+      r2.onresult = recog.onresult; // reuse same handler (closure shares allFinalText)
+
+      r2.onend = recog.onend; // reuse same handler
+
+      r2.onerror = function(err) {
+        if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
+      };
+
+      recog = r2;
+      setTimeout(function(){
+        if (!stopping && activeMeal === meal) {
+          try { recog.start(); } catch(ex){}
         }
-      }, 80);
+      }, 100);
     } else {
-      renderLive(meal, items[meal], '');
+      // User tapped STOP — now parse and save
+      var parsed = parseText(allFinalText);
+      items[meal] = parsed;
+      renderItems(meal);
       updateCount(meal);
     }
   };
 
-  r.onerror = function(e) {
-    if (e.error !== 'no-speech' && e.error !== 'aborted') console.log('mic error:', e.error);
+  recog.onerror = function(err) {
+    if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
   };
-  return r;
+
+  try { recog.start(); } catch(ex) {}
 }
 
-function startRecog(meal) {
-  sessionFinal = '';
-  recog = makeRecog(meal);
-  if (recog) recog.start();
-}
-
-function mergeItems(meal, newItems) {
-  newItems.forEach(function(item) {
-    var key = item.toLowerCase().trim();
-    var already = items[meal].some(function(x){ return x.toLowerCase().trim() === key; });
-    if (!already && key.length > 1) {
-      items[meal].push(item);
-    }
-  });
-}
-
-function parseItems(text) {
-  if (!text.trim()) return [];
-  // Split on comma, "and then", period, or "next"
-  var parts = text.split(/,|\.|\band then\b|\bnext\b/gi);
-  var result = [];
-  var seen = {};
-  parts.forEach(function(p) {
-    var t = p.trim().replace(/\s+/g,' ');
-    if (t.length < 2) return;
-    var key = t.toLowerCase();
-    if (!seen[key]) {
-      seen[key] = true;
-      result.push(t);
-    }
-  });
-  return result;
-}
-
-function renderLive(meal, itemList, interim) {
+function showLiveRaw(meal, finalSoFar, interim) {
   var box = document.getElementById('live-' + meal);
   var html = '';
-  itemList.forEach(function(item, idx) {
-    html += '<div class="live-item">' +
-      '<span>' + item + '</span>' +
-      '<button class="del-item" onclick="deleteItem(\'' + meal + '\',' + idx + ')">✕</button>' +
-    '</div>';
-  });
+  if (finalSoFar.trim()) {
+    html += '<div class="live-item"><span>' + finalSoFar.trim() + '</span></div>';
+  }
   if (interim) {
     html += '<div class="live-interim">🎤 ' + interim + '</div>';
   }
@@ -493,51 +431,76 @@ function renderLive(meal, itemList, interim) {
     html = '<div class="live-empty">Items will appear here as you speak...</div>';
   }
   box.innerHTML = html;
+}
+
+function parseText(text) {
+  if (!text.trim()) return [];
+  // Split on comma or period
+  var parts = text.split(/[,\.]+/);
+  var result = [];
+  var seen = {};
+  parts.forEach(function(p) {
+    var t = p.trim().replace(/\s+/g,' ');
+    // Skip very short or empty
+    if (t.length < 2) return;
+    var key = t.toLowerCase();
+    if (!seen[key]) {
+      seen[key] = true;
+      // Capitalize first letter
+      result.push(t.charAt(0).toUpperCase() + t.slice(1));
+    }
+  });
+  return result;
+}
+
+function renderItems(meal) {
+  var box = document.getElementById('live-' + meal);
+  var list = items[meal];
+  if (!list || list.length === 0) {
+    box.innerHTML = '<div class="live-empty">No items recorded yet.</div>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(item, idx) {
+    html += '<div class="live-item">' +
+      '<span>' + item + '</span>' +
+      '<button class="del-btn" onclick="delItem(\'' + meal + '\',' + idx + ')">✕</button>' +
+    '</div>';
+  });
+  box.innerHTML = html;
+}
+
+function delItem(meal, idx) {
+  items[meal].splice(idx, 1);
+  renderItems(meal);
   updateCount(meal);
 }
 
-function deleteItem(meal, idx) {
-  items[meal].splice(idx, 1);
-  renderLive(meal, items[meal], '');
-}
-
 function updateCount(meal) {
-  var c = items[meal] ? items[meal].length : 0;
-  var el = document.getElementById('count-' + meal);
-  el.textContent = c > 0 ? c + ' item' + (c !== 1 ? 's' : '') + ' recorded' : '';
+  var n = items[meal] ? items[meal].length : 0;
+  document.getElementById('count-' + meal).textContent = n > 0 ? n + ' item' + (n !== 1 ? 's' : '') : '';
 }
 
-// ── BUILD MENU ────────────────────────────────────
+// ── BUILD MENU ────────────────────────────────────────────────────
 function buildMenu() {
-  // Grab whatever is currently in the live boxes (in case user stopped recording)
-  ['b','l','d'].forEach(function(meal) {
-    if (!activeMeal || activeMeal !== meal) {
-      var parsed = parseItems(finalTranscript);
-      // Only update if this was the active meal that just stopped
-    }
-  });
-
-  var mealNames = {
+  var mealInfo = {
     b: { en:'Breakfast', es:'Desayuno', icon:'🌅' },
     l: { en:'Lunch',     es:'Almuerzo', icon:'☀️' },
     d: { en:'Dinner',    es:'Cena',     icon:'🌙' }
   };
 
-  // Check at least one meal has items
   var hasAny = items.b.length > 0 || items.l.length > 0 || items.d.length > 0;
   if (!hasAny) {
-    document.getElementById('status').textContent = '⚠️ Please speak at least one meal first.';
+    document.getElementById('status').textContent = '⚠️ Please record at least one meal first.';
     return;
   }
 
-  document.getElementById('status').textContent = '⏳ Building menu...';
-
   var bodyHtml = '';
   ['b','l','d'].forEach(function(key) {
-    if (items[key].length === 0) return;
-    var mn = mealNames[key];
+    if (!items[key] || items[key].length === 0) return;
+    var m = mealInfo[key];
     bodyHtml += '<div class="osec">';
-    bodyHtml += '<div class="osec-title">' + mn.icon + ' ' + mn.en + ' / ' + mn.es + '</div>';
+    bodyHtml += '<div class="osec-title">' + m.icon + ' ' + m.en + ' / ' + m.es + '</div>';
     items[key].forEach(function(item) {
       var es = translate(item);
       bodyHtml += '<div class="orow">' +
@@ -554,19 +517,17 @@ function buildMenu() {
   document.getElementById('printbtn').style.display = 'block';
   document.getElementById('status').textContent = '✅ Menu ready! Tap Print below.';
 
-  // Scroll to menu
-  setTimeout(function() {
-    document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(function(){
+    document.getElementById('output').scrollIntoView({ behavior:'smooth' });
   }, 200);
 }
 
-// ── CLEAR ALL ─────────────────────────────────────
+// ── CLEAR ALL ─────────────────────────────────────────────────────
 function clearAll() {
-  manualStop = true;
-  stopRecog();
+  stopping = true;
+  if (recog) { try { recog.stop(); } catch(e){} recog = null; }
   if (activeMeal) { setBtn(activeMeal, false); activeMeal = null; }
   items = { b: [], l: [], d: [] };
-  sessionFinal = '';
   ['b','l','d'].forEach(function(m) {
     document.getElementById('live-' + m).innerHTML = '<div class="live-empty">Items will appear here as you speak...</div>';
     document.getElementById('count-' + m).textContent = '';
@@ -574,7 +535,7 @@ function clearAll() {
   document.getElementById('output').className = '';
   document.getElementById('printbtn').style.display = 'none';
   document.getElementById('status').textContent = '';
-  manualStop = false;
+  stopping = false;
 }
 </script>
 </body>
