@@ -355,91 +355,53 @@ function startListening(meal) {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('Speech recognition not supported. Please use Chrome.'); return; }
 
-  recog = new SR();
-  recog.lang = 'en-US';
-  recog.continuous = true;
-  recog.interimResults = true;
-  recog.maxAlternatives = 1;
-
-  // We collect ALL final text here across restarts
-  // Items are parsed only when user stops — no mid-stream parsing to avoid duplicates
   var allFinalText = '';
 
-  recog.onresult = handleResult;
-  recog.onerror = handleError;
+  function doStart() {
+    var r = new SR();
+    r.lang = 'en-US';
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
 
-  recog.onend = function() {
-    if (!stopping && activeMeal === meal) {
-      // Browser auto-stopped — restart using a named function so closure stays intact
-      setTimeout(function(){
-        if (!stopping && activeMeal === meal) {
-          var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
-          var r2 = new SR2();
-          r2.lang = 'en-US';
-          r2.continuous = true;
-          r2.interimResults = true;
-          r2.maxAlternatives = 1;
-          r2.onresult = handleResult;
-          r2.onend = handleEnd;
-          r2.onerror = handleError;
-          recog = r2;
-          try { recog.start(); } catch(ex){}
+    r.onresult = function(e) {
+      var interim = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          allFinalText += e.results[i][0].transcript + ', ';
+        } else {
+          interim += e.results[i][0].transcript;
         }
-      }, 100);
-    } else {
-      // User tapped STOP — parse and save
-      var parsed = parseText(allFinalText);
-      items[meal] = parsed;
-      renderItems(meal);
-      updateCount(meal);
-    }
-  };
-
-  function handleResult(e) {
-    var interim = '';
-    for (var i = e.resultIndex; i < e.results.length; i++) {
-      if (e.results[i].isFinal) {
-        allFinalText += e.results[i][0].transcript + ', ';
-      } else {
-        interim += e.results[i][0].transcript;
       }
-    }
-    showLiveRaw(meal, allFinalText, interim);
+      showLiveRaw(meal, allFinalText, interim);
+    };
+
+    r.onend = function() {
+      if (!stopping && activeMeal === meal) {
+        // Browser cut off — restart automatically
+        setTimeout(function() {
+          if (!stopping && activeMeal === meal) doStart();
+        }, 100);
+      } else {
+        // User tapped stop — parse and save
+        var parsed = parseText(allFinalText);
+        items[meal] = parsed;
+        renderItems(meal);
+        updateCount(meal);
+      }
+    };
+
+    r.onerror = function(err) {
+      if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
+    };
+
+    recog = r;
+    try { recog.start(); } catch(ex) {}
   }
 
-  function handleEnd() {
-    if (!stopping && activeMeal === meal) {
-      setTimeout(function(){
-        if (!stopping && activeMeal === meal) {
-          var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
-          var r2 = new SR2();
-          r2.lang = 'en-US';
-          r2.continuous = true;
-          r2.interimResults = true;
-          r2.maxAlternatives = 1;
-          r2.onresult = handleResult;
-          r2.onend = handleEnd;
-          r2.onerror = handleError;
-          recog = r2;
-          try { recog.start(); } catch(ex){}
-        }
-      }, 100);
-    } else {
-      var parsed = parseText(allFinalText);
-      items[meal] = parsed;
-      renderItems(meal);
-      updateCount(meal);
-    }
-  }
-
-  function handleError(err) {
-    if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
-  }
-
-
-
-  try { recog.start(); } catch(ex) {}
+  doStart();
 }
+
 
 function showLiveRaw(meal, finalSoFar, interim) {
   var box = document.getElementById('live-' + meal);
