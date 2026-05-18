@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
+<title>Kitchen Manager</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f4f0; min-height: 100vh; }
+  .header { background: #2d5a2d; color: white; padding: 16px 20px; text-align: center; }
+  .header h1 { font-size: 1.4rem; }
+  .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  .login-wrap { max-width: 360px; margin: 60px auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  .login-wrap h2 { color: #2d5a2d; margin-bottom: 20px; text-align: center; }
+  input, textarea { width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; margin-bottom: 12px; }
+  .btn { width: 100%; padding: 12px; background: #2d5a2d; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  .btn:hover { background: #1e3d1e; }
+  .btn-blue { background: #1a5276; }
+  .btn-blue:hover { background: #154360; }
+  .btn-red { background: #c0392b; }
+  .btn-red:hover { background: #922b21; }
+  .btn-sm { width: auto; padding: 7px 16px; font-size: 0.9rem; border-radius: 6px; margin: 3px; }
+  .main { max-width: 700px; margin: 20px auto; padding: 0 12px 40px; }
+  .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+  .card h2 { color: #2d5a2d; font-size: 1.1rem; margin-bottom: 14px; }
+  .status { text-align: center; padding: 10px; color: #2d5a2d; font-weight: 600; min-height: 30px; }
+  .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; border: 2px solid #2d5a2d; background: white; color: #2d5a2d; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+  .tab.active { background: #2d5a2d; color: white; }
+  .mic-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; background: #e67e22; color: white; }
+  .mic-btn.recording { background: #c0392b; }
+  .live-box { min-height: 50px; background: #f9f9f9; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.9rem; color: #555; }
+  .item-tag { display: inline-block; background: #eaf4ea; border: 1px solid #2d5a2d; border-radius: 20px; padding: 4px 12px; margin: 3px; font-size: 0.95rem; color: #2d5a2d; }
+  .item-tag .x { cursor: pointer; margin-left: 6px; color: #c0392b; font-weight: 700; }
+  .meal-label { font-weight: 700; color: #2d5a2d; margin-bottom: 8px; font-size: 1rem; }
+  .publish-box { background: #eaf4ea; border-radius: 10px; padding: 16px; margin-bottom: 14px; text-align: center; }
+  .publish-status { font-size: 1rem; color: #2d5a2d; font-weight: 600; margin-bottom: 10px; }
+  .total-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #eee; font-size: 1rem; }
+  .total-row:last-child { border-bottom: none; }
+  .total-count { font-weight: 700; color: #1a5276; font-size: 1.1rem; min-width: 32px; text-align: right; }
+  .res-order { background: #f9f9f9; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .res-order-name { font-weight: 700; font-size: 1rem; color: #1a5276; }
+  .res-order-room { font-size: 0.85rem; color: #888; }
+  .res-order-diet { font-size: 0.85rem; color: #c0392b; }
+  .res-order-items { margin-top: 6px; font-size: 0.95rem; }
+  .nav-links { text-align: center; margin-top: 16px; }
+  .nav-links a { color: #2d5a2d; text-decoration: none; font-weight: 600; margin: 0 10px; }
+  @media print {
+    .no-print { display: none !important; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🍳 Kitchen Manager</h1>
+  <p>Build menu · Publish · View orders</p>
+</div>
+
+<div id="loginSection" class="login-wrap">
+  <h2>🔒 Kitchen Login</h2>
+  <input type="password" id="pwInput" placeholder="Enter password" />
+  <button class="btn" onclick="doLogin()">Login</button>
+  <div class="status" id="loginStatus"></div>
+</div>
+
+<div id="mainSection" style="display:none">
+  <div class="main">
+    <div class="tab-row no-print">
+      <div class="tab active" id="tab-menu" onclick="showTab('menu')">📝 Build Menu</div>
+      <div class="tab" id="tab-orders" onclick="showTab('orders')">📊 Orders & Totals</div>
+    </div>
+
+    <!-- BUILD MENU TAB -->
+    <div id="pane-menu">
+      <div class="card">
+        <h2>🌅 Breakfast</h2>
+        <button class="mic-btn" id="mbtn-b" onclick="toggleMic('b')">🎤 Tap to Speak Breakfast — tap again to stop</button>
+        <div class="live-box" id="live-b">Items will appear here as you speak...</div>
+        <div id="tags-b"></div>
+      </div>
+      <div class="card">
+        <h2>☀️ Lunch</h2>
+        <button class="mic-btn" id="mbtn-l" onclick="toggleMic('l')">🎤 Tap to Speak Lunch — tap again to stop</button>
+        <div class="live-box" id="live-l">Items will appear here as you speak...</div>
+        <div id="tags-l"></div>
+      </div>
+      <div class="card">
+        <h2>🌙 Dinner</h2>
+        <button class="mic-btn" id="mbtn-d" onclick="toggleMic('d')">🎤 Tap to Speak Dinner — tap again to stop</button>
+        <div class="live-box" id="live-d">Items will appear here as you speak...</div>
+        <div id="tags-d"></div>
+      </div>
+
+      <div class="card">
+        <div class="publish-box">
+          <div class="publish-status" id="publishStatus">No menu published yet today.</div>
+          <button class="btn btn-blue" onclick="publishMenu()">📤 Publish Menu to Order Takers</button>
+          <button class="btn btn-red" onclick="clearOrders()" style="margin-top:6px">🗑️ Clear Today's Orders</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS & TOTALS TAB -->
+    <div id="pane-orders" style="display:none">
+      <div class="card">
+        <h2>📊 Item Totals</h2>
+        <button class="btn" onclick="loadOrders()" style="margin-bottom:12px">🔄 Refresh</button>
+        <div id="totalsOut"></div>
+      </div>
+      <div class="card">
+        <h2>📄 Individual Orders <button class="btn btn-sm no-print" onclick="window.print()" style="float:right">🖨️ Print</button></h2>
+        <div id="ordersOut"></div>
+      </div>
+    </div>
+
+    <div class="nav-links no-print">
+      <a href="nurse.html">🏥 Nurse</a>
+      <a href="order.html">📋 Order Taker</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = 'https://john-the-builder-default-rtdb.firebaseio.com';
+const PASS = 'manager2024';
+var items = { b: [], l: [], d: [] };
+var activeMeal = null;
+var stopping = false;
+var recog = null;
+
+function doLogin() {
+  var pw = document.getElementById('pwInput').value.trim();
+  if (pw === PASS) {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('mainSection').style.display = 'block';
+    checkPublishStatus();
+  } else {
+    document.getElementById('loginStatus').textContent = '❌ Incorrect password';
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+
+function showTab(tab) {
+  document.getElementById('pane-menu').style.display = tab === 'menu' ? 'block' : 'none';
+  document.getElementById('pane-orders').style.display = tab === 'orders' ? 'block' : 'none';
+  document.getElementById('tab-menu').classList.toggle('active', tab === 'menu');
+  document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
+  if (tab === 'orders') loadOrders();
+}
+
+// ---- MIC LOGIC ----
+function toggleMic(meal) {
+  if (activeMeal === meal) {
+    stopping = true;
+    activeMeal = null;
+    if (recog) { try { recog.stop(); } catch(e){} recog = null; }
+    setBtn(meal, false);
+  } else {
+    if (activeMeal) {
+      stopping = true;
+      var prev = activeMeal;
+      activeMeal = null;
+      if (recog) { try { recog.stop(); } catch(e){} recog = null; }
+      setBtn(prev, false);
+    }
+    setTimeout(function() {
+      stopping = false;
+      activeMeal = meal;
+      startListening(meal);
+      setBtn(meal, true);
+    }, 150);
+  }
+}
+
+function setBtn(meal, active) {
+  var btn = document.getElementById('mbtn-' + meal);
+  var labels = { b: 'Breakfast', l: 'Lunch', d: 'Dinner' };
+  btn.textContent = active ? '🔴 Recording ' + labels[meal] + '... tap to stop' : '🎤 Tap to Speak ' + labels[meal] + ' — tap again to stop';
+  btn.classList.toggle('recording', active);
+}
+
+function startListening(meal) {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Please use Chrome for speech recognition.'); return; }
+  var allFinalText = '';
+  stopping = false;
+
+  function doStart() {
+    var r = new SR();
+    r.lang = 'en-US';
+    r.continuous = true;
+    r.interimResults = true;
+    r.maxAlternatives = 1;
+
+    r.onresult = function(e) {
+      var interim = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) allFinalText += e.results[i][0].transcript + ', ';
+        else interim += e.results[i][0].transcript;
+      }
+      document.getElementById('live-' + meal).textContent = allFinalText + interim;
+    };
+
+    r.onend = function() {
+      if (!stopping && activeMeal === meal) {
+        setTimeout(function() { if (!stopping && activeMeal === meal) doStart(); }, 100);
+      } else {
+        var parsed = parseText(allFinalText);
+        items[meal] = parsed;
+        renderTags(meal);
+        document.getElementById('live-' + meal).textContent = parsed.length + ' item(s) recorded.';
+      }
+    };
+
+    r.onerror = function(err) { if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error); };
+    recog = r;
+    try { recog.start(); } catch(ex) {}
+  }
+  doStart();
+}
+
+function parseText(text) {
+  var parts = text.split(/[,،.]+/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 1; });
+  return parts.map(function(en) { return { en: en, es: translate(en) }; });
+}
+
+function renderTags(meal) {
+  var html = items[meal].map(function(item, i) {
+    return '<span class="item-tag">' + item.en + ' / ' + item.es +
+      '<span class="x" onclick="removeItem(\'' + meal + '\',' + i + ')">✕</span></span>';
+  }).join('');
+  document.getElementById('tags-' + meal).innerHTML = html;
+}
+
+function removeItem(meal, idx) {
+  items[meal].splice(idx, 1);
+  renderTags(meal);
+}
+
+// ---- PUBLISH ----
+function publishMenu() {
+  var hasAny = items.b.length > 0 || items.l.length > 0 || items.d.length > 0;
+  if (!hasAny) { alert('Please record at least one meal before publishing.'); return; }
+  var menu = { b: items.b, l: items.l, d: items.d, publishedAt: Date.now() };
+  fetch(DB + '/menu/today.json', { method: 'PUT', body: JSON.stringify(menu) })
+    .then(function() {
+      var t = new Date().toLocaleTimeString();
+      document.getElementById('publishStatus').textContent = '✅ Menu published at ' + t + ' — order takers can now take orders!';
+    });
+}
+
+function checkPublishStatus() {
+  fetch(DB + '/menu/today.json').then(function(r){ return r.json(); }).then(function(menu) {
+    if (menu && menu.publishedAt) {
+      var t = new Date(menu.publishedAt).toLocaleTimeString();
+      document.getElementById('publishStatus').textContent = '✅ Menu last published at ' + t;
+      // Reload items from Firebase
+      items.b = menu.b || [];
+      items.l = menu.l || [];
+      items.d = menu.d || [];
+      renderTags('b'); renderTags('l'); renderTags('d');
+    }
+  });
+}
+
+function clearOrders() {
+  if (!confirm('Clear ALL orders for today? This cannot be undone.')) return;
+  fetch(DB + '/orders.json', { method: 'DELETE' }).then(function() {
+    alert('Orders cleared.');
+  });
+}
+
+// ---- ORDERS & TOTALS ----
+function loadOrders() {
+  fetch(DB + '/orders.json').then(function(r){ return r.json(); }).then(function(data) {
+    if (!data) { document.getElementById('totalsOut').innerHTML = '<p style="color:#888;text-align:center;padding:20px">No orders yet.</p>'; document.getElementById('ordersOut').innerHTML = ''; return; }
+    var orders = Object.values(data);
+    orders.sort(function(a,b){ return a.room.localeCompare(b.room); });
+    buildTotals(orders);
+    buildIndividualOrders(orders);
+  });
+}
+
+function buildTotals(orders) {
+  var counts = { b: {}, l: {}, d: {} };
+  var mealLabels = { b: '🌅 Breakfast', l: '☀️ Lunch', d: '🌙 Dinner' };
+  orders.forEach(function(order) {
+    if (!order.meals) return;
+    ['b','l','d'].forEach(function(key) {
+      if (!order.meals[key]) return;
+      order.meals[key].forEach(function(item) {
+        counts[key][item.en] = (counts[key][item.en] || 0) + 1;
+      });
+    });
+  });
+  var html = '';
+  ['b','l','d'].forEach(function(key) {
+    var entries = Object.entries(counts[key]);
+    if (entries.length === 0) return;
+    html += '<div style="margin-bottom:14px"><div class="meal-label">' + mealLabels[key] + '</div>';
+    entries.sort(function(a,b){ return b[1]-a[1]; }).forEach(function(e) {
+      html += '<div class="total-row"><span>' + e[0] + '</span><span class="total-count">' + e[1] + '</span></div>';
+    });
+    html += '</div>';
+  });
+  document.getElementById('totalsOut').innerHTML = html || '<p style="color:#888">No orders yet.</p>';
+}
+
+function buildIndividualOrders(orders) {
+  var mealLabels = { b: '🌅 Breakfast', l: '☀️ Lunch', d: '🌙 Dinner' };
+  var html = '<p style="font-size:0.85rem;color:#888;margin-bottom:10px">' + orders.length + ' order(s)</p>';
+  orders.forEach(function(order) {
+    html += '<div class="res-order">' +
+      '<div class="res-order-name">' + order.name + '</div>' +
+      '<div class="res-order-room">Room ' + order.room + '</div>' +
+      '<div class="res-order-diet">⚠️ ' + order.diet + '</div>' +
+      '<div class="res-order-items">';
+    if (order.meals) {
+      ['b','l','d'].forEach(function(key) {
+        if (!order.meals[key] || order.meals[key].length === 0) return;
+        html += '<strong>' + mealLabels[key] + ':</strong> ' + order.meals[key].map(function(i){ return i.en; }).join(', ') + '<br>';
+      });
+    }
+    html += '</div></div>';
+  });
+  document.getElementById('ordersOut').innerHTML = html;
+}
+
+// ---- TRANSLATION DICTIONARY ----
+function translate(en) {
+  var dict = {
+    'scrambled eggs':'huevos revueltos','fried eggs':'huevos fritos','boiled eggs':'huevos hervidos','oatmeal':'avena','pancakes':'panqueques','waffles':'gofres','toast':'pan tostado','french toast':'pan francés','bacon':'tocino','sausage':'salchicha','ham':'jamón','orange juice':'jugo de naranja','apple juice':'jugo de manzana','coffee':'café','tea':'té','milk':'leche','yogurt':'yogur','fruit':'fruta','banana':'plátano','apple':'manzana','cereal':'cereal','bagel':'bagel','muffin':'muffin','butter':'mantequilla','jelly':'mermelada','syrup':'jarabe',
+    'chicken soup':'sopa de pollo','tomato soup':'sopa de tomate','grilled cheese':'queso a la plancha','sandwich':'sándwich','salad':'ensalada','caesar salad':'ensalada César','tuna salad':'ensalada de atún','chicken salad':'ensalada de pollo','hamburger':'hamburguesa','hot dog':'perro caliente','pizza':'pizza','pasta':'pasta','macaroni':'macarrones','grilled chicken':'pollo a la plancha','fish':'pescado','soup':'sopa','bread':'pan','roll':'panecillo','crackers':'galletas saladas','rice':'arroz','beans':'frijoles','corn':'maíz','peas':'guisantes','carrots':'zanahorias','broccoli':'brócoli','potato':'papa','mashed potatoes':'puré de papas','french fries':'papas fritas','coleslaw':'ensalada de repollo','fruit cup':'copa de fruta',
+    'roast beef':'carne asada','roast chicken':'pollo asado','turkey':'pavo','meatloaf':'pastel de carne','pork chop':'chuleta de cerdo','steak':'bistec','salmon':'salmón','tilapia':'tilapia','shrimp':'camarones','spaghetti':'espagueti','lasagna':'lasaña','casserole':'cazuela','stuffed peppers':'pimientos rellenos','pot roast':'asado de olla','beef stew':'estofado de res','chicken breast':'pechuga de pollo','baked potato':'papa al horno','sweet potato':'batata','green beans':'ejotes','asparagus':'espárragos','spinach':'espinaca','cauliflower':'coliflor','zucchini':'calabacín','mushrooms':'champiñones','onions':'cebollas','tomatoes':'tomates','lettuce':'lechuga','cucumber':'pepino','dessert':'postre','cake':'pastel','pie':'pay','ice cream':'helado','pudding':'pudín','jello':'gelatina','cookies':'galletas','brownie':'brownie','water':'agua','lemonade':'limonada','soda':'refresco','juice':'jugo','chocolate milk':'leche con chocolate'
+  };
+  var key = en.toLowerCase().trim();
+  if (dict[key]) return dict[key];
+  var words = key.split(' ');
+  for (var i = 0; i < words.length; i++) {
+    if (dict[words[i]]) return dict[words[i]];
+  }
+  return en;
+}
+</script>
+</body>
+</html>
