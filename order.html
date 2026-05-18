@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="google" content="notranslate">
+<title>Order Taker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f4f0; min-height: 100vh; }
+  .header { background: #1a5276; color: white; padding: 16px 20px; text-align: center; }
+  .header h1 { font-size: 1.4rem; }
+  .header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  .main { max-width: 500px; margin: 20px auto; padding: 0 12px 40px; }
+  .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+  .card h2 { color: #1a5276; font-size: 1.1rem; margin-bottom: 14px; }
+  input { width: 100%; padding: 12px; border: 2px solid #ccc; border-radius: 8px; font-size: 1.2rem; margin-bottom: 10px; text-align: center; letter-spacing: 2px; }
+  input:focus { border-color: #1a5276; outline: none; }
+  .btn { width: 100%; padding: 13px; background: #1a5276; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+  .btn:hover { background: #154360; }
+  .btn-green { background: #2d5a2d; }
+  .btn-green:hover { background: #1e3d1e; }
+  .btn-gray { background: #888; }
+  .resident-box { background: #eaf4ea; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .res-room { font-size: 1.1rem; font-weight: 700; color: #1a5276; }
+  .res-name { font-size: 1.3rem; font-weight: 900; color: #111; margin: 4px 0; }
+  .res-diet { font-size: 0.95rem; color: #c0392b; font-weight: 600; }
+  .meal-section { margin-bottom: 14px; }
+  .meal-title { font-weight: 700; font-size: 1rem; color: #2d5a2d; margin-bottom: 8px; border-bottom: 2px solid #eee; padding-bottom: 4px; }
+  .item-btn { display: block; width: 100%; text-align: left; padding: 10px 14px; margin-bottom: 6px; border: 2px solid #ddd; border-radius: 8px; background: white; font-size: 1rem; cursor: pointer; }
+  .item-btn.selected { background: #1a5276; color: white; border-color: #1a5276; font-weight: 700; }
+  .status { text-align: center; padding: 10px; color: #2d5a2d; font-weight: 600; min-height: 30px; }
+  .no-menu { text-align: center; color: #888; padding: 30px; }
+  .nav-links { text-align: center; margin-top: 16px; }
+  .nav-links a { color: #1a5276; text-decoration: none; font-weight: 600; margin: 0 10px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📋 Order Taker</h1>
+  <p>Enter room number to start an order</p>
+</div>
+
+<div class="main">
+  <div class="card" id="roomCard">
+    <h2>🔢 Enter Room Number</h2>
+    <input type="text" id="roomIn" placeholder="e.g. 101" autocomplete="off" />
+    <button class="btn" onclick="lookupRoom()">Find Resident</button>
+    <div class="status" id="lookupStatus"></div>
+  </div>
+
+  <div id="orderSection" style="display:none">
+    <div class="card">
+      <div class="resident-box" id="resBox"></div>
+      <div id="menuItems"></div>
+      <button class="btn btn-green" onclick="submitOrder()">✅ Submit Order</button>
+      <button class="btn btn-gray" onclick="resetForm()">🔄 New Room</button>
+      <div class="status" id="orderStatus"></div>
+    </div>
+  </div>
+
+  <div class="nav-links">
+    <a href="nurse.html">🏥 Nurse</a>
+    <a href="kitchen.html">🍳 Kitchen</a>
+  </div>
+</div>
+
+<script>
+const DB = 'https://john-the-builder-default-rtdb.firebaseio.com';
+var currentResident = null;
+var currentMenu = null;
+var selections = {};
+
+document.getElementById('roomIn').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') lookupRoom();
+});
+
+function lookupRoom() {
+  var room = document.getElementById('roomIn').value.trim().toUpperCase();
+  if (!room) return;
+  document.getElementById('lookupStatus').textContent = 'Looking up...';
+
+  Promise.all([
+    fetch(DB + '/residents/' + room + '.json').then(function(r){ return r.json(); }),
+    fetch(DB + '/menu/today.json').then(function(r){ return r.json(); })
+  ]).then(function(results) {
+    var resident = results[0];
+    var menu = results[1];
+
+    if (!resident) {
+      document.getElementById('lookupStatus').textContent = '❌ Room ' + room + ' not found. Check with nurse.';
+      return;
+    }
+    if (!menu) {
+      document.getElementById('lookupStatus').textContent = '⚠️ No menu published yet. Ask kitchen to publish.';
+      return;
+    }
+
+    currentResident = resident;
+    currentMenu = menu;
+    selections = {};
+    document.getElementById('lookupStatus').textContent = '';
+    buildOrderForm();
+  });
+}
+
+function buildOrderForm() {
+  var r = currentResident;
+  document.getElementById('resBox').innerHTML =
+    '<div class="res-room">Room ' + r.room + '</div>' +
+    '<div class="res-name">' + r.name + '</div>' +
+    '<div class="res-diet">⚠️ ' + r.diet + '</div>';
+
+  var mealInfo = { b: '🌅 Breakfast', l: '☀️ Lunch', d: '🌙 Dinner' };
+  var html = '';
+  ['b','l','d'].forEach(function(key) {
+    if (!currentMenu[key] || currentMenu[key].length === 0) return;
+    html += '<div class="meal-section"><div class="meal-title">' + mealInfo[key] + '</div>';
+    currentMenu[key].forEach(function(item, idx) {
+      var id = key + '_' + idx;
+      html += '<button class="item-btn" id="ibtn_' + id + '" onclick="toggleItem(\'' + key + '\',' + idx + ',\'' + id + '\')">' +
+        item.en + ' / ' + item.es + '</button>';
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('menuItems').innerHTML = html;
+  document.getElementById('roomCard').style.display = 'none';
+  document.getElementById('orderSection').style.display = 'block';
+}
+
+function toggleItem(meal, idx, id) {
+  if (!selections[meal]) selections[meal] = {};
+  selections[meal][idx] = !selections[meal][idx];
+  var btn = document.getElementById('ibtn_' + id);
+  btn.classList.toggle('selected', selections[meal][idx]);
+}
+
+function submitOrder() {
+  var hasAny = false;
+  Object.keys(selections).forEach(function(m) {
+    Object.keys(selections[m]).forEach(function(i) {
+      if (selections[m][i]) hasAny = true;
+    });
+  });
+  if (!hasAny) {
+    document.getElementById('orderStatus').textContent = '⚠️ Please select at least one item.';
+    return;
+  }
+
+  var order = {
+    room: currentResident.room,
+    name: currentResident.name,
+    diet: currentResident.diet,
+    timestamp: Date.now(),
+    meals: {}
+  };
+
+  ['b','l','d'].forEach(function(key) {
+    if (!selections[key]) return;
+    var items = [];
+    Object.keys(selections[key]).forEach(function(idx) {
+      if (selections[key][idx]) {
+        items.push(currentMenu[key][idx]);
+      }
+    });
+    if (items.length > 0) order.meals[key] = items;
+  });
+
+  fetch(DB + '/orders/' + currentResident.room + '.json', {
+    method: 'PUT',
+    body: JSON.stringify(order)
+  }).then(function() {
+    document.getElementById('orderStatus').textContent = '✅ Order submitted for ' + currentResident.name + '!';
+    setTimeout(function() { resetForm(); }, 2000);
+  });
+}
+
+function resetForm() {
+  currentResident = null;
+  selections = {};
+  document.getElementById('roomIn').value = '';
+  document.getElementById('lookupStatus').textContent = '';
+  document.getElementById('orderStatus').textContent = '';
+  document.getElementById('orderSection').style.display = 'none';
+  document.getElementById('roomCard').style.display = 'block';
+  document.getElementById('roomIn').focus();
+}
+</script>
+</body>
+</html>
