@@ -322,20 +322,25 @@ function toggleMic(meal) {
   if (activeMeal === meal) {
     // User tapped STOP
     stopping = true;
-    if (recog) { try { recog.stop(); } catch(e){} }
-    setBtn(meal, false);
     activeMeal = null;
+    if (recog) { try { recog.stop(); } catch(e){} recog = null; }
+    setBtn(meal, false);
   } else {
     // Stop any other meal first
     if (activeMeal) {
       stopping = true;
-      if (recog) { try { recog.stop(); } catch(e){} }
-      setBtn(activeMeal, false);
+      var prev = activeMeal;
+      activeMeal = null;
+      if (recog) { try { recog.stop(); } catch(e){} recog = null; }
+      setBtn(prev, false);
     }
-    activeMeal = meal;
-    stopping = false;
-    startListening(meal);
-    setBtn(meal, true);
+    // Small delay so previous recog fully closes before starting new one
+    setTimeout(function() {
+      stopping = false;
+      activeMeal = meal;
+      startListening(meal);
+      setBtn(meal, true);
+    }, 150);
   }
 }
 
@@ -356,6 +361,7 @@ function startListening(meal) {
   if (!SR) { alert('Speech recognition not supported. Please use Chrome.'); return; }
 
   var allFinalText = '';
+  stopping = false;
 
   function doStart() {
     var r = new SR();
