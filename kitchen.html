@@ -20,14 +20,22 @@
   .btn-blue:hover { background: #154360; }
   .btn-red { background: #c0392b; }
   .btn-red:hover { background: #922b21; }
+  .btn-orange { background: #e67e22; }
+  .btn-orange:hover { background: #ca6f1e; }
   .btn-sm { width: auto; padding: 7px 16px; font-size: 0.9rem; border-radius: 6px; margin: 3px; }
   .main { max-width: 700px; margin: 20px auto; padding: 0 12px 40px; }
   .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
   .card h2 { color: #2d5a2d; font-size: 1.1rem; margin-bottom: 14px; }
   .status { text-align: center; padding: 10px; color: #2d5a2d; font-weight: 600; min-height: 30px; }
-  .tab-row { display: flex; gap: 8px; margin-bottom: 16px; }
-  .tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; border: 2px solid #2d5a2d; background: white; color: #2d5a2d; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+  .tab-row { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 80px; padding: 10px 6px; text-align: center; border-radius: 8px; border: 2px solid #2d5a2d; background: white; color: #2d5a2d; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
   .tab.active { background: #2d5a2d; color: white; }
+  .day-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px; }
+  .day-btn { padding: 10px 4px; text-align: center; border-radius: 8px; border: 2px solid #2d5a2d; background: white; color: #2d5a2d; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+  .day-btn.active { background: #2d5a2d; color: white; }
+  .day-btn.has-menu { border-color: #27ae60; color: #27ae60; }
+  .day-btn.has-menu.active { background: #27ae60; color: white; border-color: #27ae60; }
+  .day-btn.today { border-width: 3px; }
   .mic-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 8px; background: #e67e22; color: white; }
   .mic-btn.recording { background: #c0392b; }
   .live-box { min-height: 50px; background: #f9f9f9; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 0.9rem; color: #555; }
@@ -46,16 +54,13 @@
   .res-order-items { margin-top: 6px; font-size: 0.95rem; }
   .nav-links { text-align: center; margin-top: 16px; }
   .nav-links a { color: #2d5a2d; text-decoration: none; font-weight: 600; margin: 0 10px; }
-  @media print {
-    .no-print { display: none !important; }
-    .card { box-shadow: none; }
-  }
+  @media print { .no-print { display: none !important; } .card { box-shadow: none; } }
 </style>
 </head>
 <body>
 <div class="header">
   <h1>🍳 Kitchen Manager</h1>
-  <p>Build menu · Publish · View orders</p>
+  <p>Build weekly menu · Publish daily · View orders</p>
 </div>
 
 <div id="loginSection" class="login-wrap">
@@ -68,45 +73,65 @@
 <div id="mainSection" style="display:none">
   <div class="main">
     <div class="tab-row no-print">
-      <div class="tab active" id="tab-menu" onclick="showTab('menu')">📝 Build Menu</div>
-      <div class="tab" id="tab-orders" onclick="showTab('orders')">📊 Orders & Totals</div>
+      <div class="tab active" id="tab-week" onclick="showTab('week')">📅 Weekly Menu</div>
+      <div class="tab" id="tab-publish" onclick="showTab('publish')">📤 Publish Today</div>
+      <div class="tab" id="tab-orders" onclick="showTab('orders')">📊 Orders</div>
     </div>
 
-    <!-- BUILD MENU TAB -->
-    <div id="pane-menu">
+    <!-- WEEKLY MENU TAB -->
+    <div id="pane-week">
       <div class="card">
-        <h2>🌅 Breakfast</h2>
-        <button class="mic-btn" id="mbtn-b" onclick="toggleMic('b')">🎤 Tap to Speak Breakfast — tap again to stop</button>
-        <div class="live-box" id="live-b">Items will appear here as you speak...</div>
-        <div id="tags-b"></div>
-      </div>
-      <div class="card">
-        <h2>☀️ Lunch</h2>
-        <button class="mic-btn" id="mbtn-l" onclick="toggleMic('l')">🎤 Tap to Speak Lunch — tap again to stop</button>
-        <div class="live-box" id="live-l">Items will appear here as you speak...</div>
-        <div id="tags-l"></div>
-      </div>
-      <div class="card">
-        <h2>🌙 Dinner</h2>
-        <button class="mic-btn" id="mbtn-d" onclick="toggleMic('d')">🎤 Tap to Speak Dinner — tap again to stop</button>
-        <div class="live-box" id="live-d">Items will appear here as you speak...</div>
-        <div id="tags-d"></div>
+        <h2>📅 Select Day to Build</h2>
+        <div class="day-grid" id="dayGrid"></div>
+        <div id="selectedDayLabel" style="text-align:center;font-weight:700;color:#2d5a2d;margin-bottom:12px;font-size:1.1rem"></div>
       </div>
 
+      <div id="mealCards">
+        <div class="card">
+          <h2>🌅 Breakfast</h2>
+          <button class="mic-btn" id="mbtn-b" onclick="toggleMic('b')">🎤 Tap to Speak Breakfast — tap again to stop</button>
+          <div class="live-box" id="live-b">Items will appear here as you speak...</div>
+          <div id="tags-b"></div>
+        </div>
+        <div class="card">
+          <h2>☀️ Lunch</h2>
+          <button class="mic-btn" id="mbtn-l" onclick="toggleMic('l')">🎤 Tap to Speak Lunch — tap again to stop</button>
+          <div class="live-box" id="live-l">Items will appear here as you speak...</div>
+          <div id="tags-l"></div>
+        </div>
+        <div class="card">
+          <h2>🌙 Dinner</h2>
+          <button class="mic-btn" id="mbtn-d" onclick="toggleMic('d')">🎤 Tap to Speak Dinner — tap again to stop</button>
+          <div class="live-box" id="live-d">Items will appear here as you speak...</div>
+          <div id="tags-d"></div>
+        </div>
+        <div class="card">
+          <button class="btn" onclick="saveDayMenu()">💾 Save This Day's Menu</button>
+          <div class="status" id="saveStatus"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PUBLISH TODAY TAB -->
+    <div id="pane-publish" style="display:none">
       <div class="card">
-        <div class="publish-box">
+        <h2>📤 Publish Today's Menu</h2>
+        <p style="color:#888;margin-bottom:14px;font-size:0.95rem">Pick the day to send to order takers right now.</p>
+        <div class="day-grid" id="publishDayGrid"></div>
+        <div class="publish-box" style="margin-top:14px">
           <div class="publish-status" id="publishStatus">No menu published yet today.</div>
-          <button class="btn btn-blue" onclick="publishMenu()">📤 Publish Menu to Order Takers</button>
+          <div id="publishPreview" style="margin-bottom:12px;text-align:left;font-size:0.95rem"></div>
+          <button class="btn btn-blue" onclick="publishMenu()">📤 Publish Selected Day to Order Takers</button>
           <button class="btn btn-red" onclick="clearOrders()" style="margin-top:6px">🗑️ Clear Today's Orders</button>
         </div>
       </div>
     </div>
 
-    <!-- ORDERS & TOTALS TAB -->
+    <!-- ORDERS TAB -->
     <div id="pane-orders" style="display:none">
       <div class="card">
         <h2>📊 Item Totals</h2>
-        <button class="btn" onclick="loadOrders()" style="margin-bottom:12px">🔄 Refresh</button>
+        <button class="btn no-print" onclick="loadOrders()" style="margin-bottom:12px">🔄 Refresh</button>
         <div id="totalsOut"></div>
       </div>
       <div class="card">
@@ -125,16 +150,22 @@
 <script>
 const DB = 'https://john-the-builder-default-rtdb.firebaseio.com';
 const PASS = 'manager2024';
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 var items = { b: [], l: [], d: [] };
 var activeMeal = null;
 var stopping = false;
 var recog = null;
+var selectedDay = new Date().getDay();
+var publishDay = new Date().getDay();
+var weekMenus = {};
 
 function doLogin() {
   var pw = document.getElementById('pwInput').value.trim();
   if (pw === PASS) {
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('mainSection').style.display = 'block';
+    loadWeekMenus();
     checkPublishStatus();
   } else {
     document.getElementById('loginStatus').textContent = '❌ Incorrect password';
@@ -143,11 +174,123 @@ function doLogin() {
 document.getElementById('pwInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 
 function showTab(tab) {
-  document.getElementById('pane-menu').style.display = tab === 'menu' ? 'block' : 'none';
-  document.getElementById('pane-orders').style.display = tab === 'orders' ? 'block' : 'none';
-  document.getElementById('tab-menu').classList.toggle('active', tab === 'menu');
-  document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
+  ['week','publish','orders'].forEach(function(t) {
+    document.getElementById('pane-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
   if (tab === 'orders') loadOrders();
+  if (tab === 'publish') renderPublishGrid();
+}
+
+// ---- WEEKLY MENU SETUP ----
+function loadWeekMenus() {
+  fetch(DB + '/weekmenu.json').then(function(r){ return r.json(); }).then(function(data) {
+    weekMenus = data || {};
+    renderDayGrid();
+    selectDay(selectedDay);
+  });
+}
+
+function renderDayGrid() {
+  var today = new Date().getDay();
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var cls = 'day-btn';
+    if (i === today) cls += ' today';
+    if (weekMenus[i]) cls += ' has-menu';
+    if (i === selectedDay) cls += ' active';
+    html += '<div class="' + cls + '" id="dg-' + i + '" onclick="selectDay(' + i + ')">' + SHORT[i] + '</div>';
+  }
+  document.getElementById('dayGrid').innerHTML = html;
+}
+
+function selectDay(day) {
+  selectedDay = day;
+  renderDayGrid();
+  document.getElementById('selectedDayLabel').textContent = '✏️ Editing: ' + DAYS[day];
+  if (weekMenus[day]) {
+    items.b = weekMenus[day].b || [];
+    items.l = weekMenus[day].l || [];
+    items.d = weekMenus[day].d || [];
+  } else {
+    items.b = []; items.l = []; items.d = [];
+  }
+  renderTags('b'); renderTags('l'); renderTags('d');
+  document.getElementById('live-b').textContent = 'Items will appear here as you speak...';
+  document.getElementById('live-l').textContent = 'Items will appear here as you speak...';
+  document.getElementById('live-d').textContent = 'Items will appear here as you speak...';
+}
+
+function saveDayMenu() {
+  var menu = { b: items.b, l: items.l, d: items.d };
+  fetch(DB + '/weekmenu/' + selectedDay + '.json', { method: 'PUT', body: JSON.stringify(menu) })
+    .then(function() {
+      weekMenus[selectedDay] = menu;
+      renderDayGrid();
+      document.getElementById('saveStatus').textContent = '✅ ' + DAYS[selectedDay] + '\'s menu saved!';
+      setTimeout(function(){ document.getElementById('saveStatus').textContent = ''; }, 2500);
+    });
+}
+
+// ---- PUBLISH TAB ----
+function renderPublishGrid() {
+  var today = new Date().getDay();
+  var html = '';
+  for (var i = 0; i < 7; i++) {
+    var cls = 'day-btn';
+    if (i === today) cls += ' today';
+    if (weekMenus[i]) cls += ' has-menu';
+    if (i === publishDay) cls += ' active';
+    html += '<div class="' + cls + '" id="pdg-' + i + '" onclick="selectPublishDay(' + i + ')">' + SHORT[i] + (weekMenus[i] ? ' ✓' : '') + '</div>';
+  }
+  document.getElementById('publishDayGrid').innerHTML = html;
+  showPublishPreview();
+}
+
+function selectPublishDay(day) {
+  publishDay = day;
+  renderPublishGrid();
+  showPublishPreview();
+}
+
+function showPublishPreview() {
+  var menu = weekMenus[publishDay];
+  if (!menu) {
+    document.getElementById('publishPreview').innerHTML = '<p style="color:#c0392b">⚠️ No menu saved for ' + DAYS[publishDay] + ' yet. Go to Weekly Menu tab to build it.</p>';
+    return;
+  }
+  var mealLabels = { b: '🌅 Breakfast', l: '☀️ Lunch', d: '🌙 Dinner' };
+  var html = '<strong>' + DAYS[publishDay] + '\'s Menu:</strong><br>';
+  ['b','l','d'].forEach(function(key) {
+    if (!menu[key] || menu[key].length === 0) return;
+    html += '<strong>' + mealLabels[key] + ':</strong> ' + menu[key].map(function(i){ return i.en; }).join(', ') + '<br>';
+  });
+  document.getElementById('publishPreview').innerHTML = html;
+}
+
+function publishMenu() {
+  var menu = weekMenus[publishDay];
+  if (!menu) { alert('No menu saved for ' + DAYS[publishDay] + '. Please build it first.'); return; }
+  var toPublish = { b: menu.b, l: menu.l, d: menu.d, publishedAt: Date.now(), day: DAYS[publishDay] };
+  fetch(DB + '/menu/today.json', { method: 'PUT', body: JSON.stringify(toPublish) })
+    .then(function() {
+      var t = new Date().toLocaleTimeString();
+      document.getElementById('publishStatus').textContent = '✅ ' + DAYS[publishDay] + '\'s menu published at ' + t + '!';
+    });
+}
+
+function checkPublishStatus() {
+  fetch(DB + '/menu/today.json').then(function(r){ return r.json(); }).then(function(menu) {
+    if (menu && menu.publishedAt) {
+      var t = new Date(menu.publishedAt).toLocaleTimeString();
+      document.getElementById('publishStatus').textContent = '✅ ' + (menu.day || '') + '\'s menu published at ' + t;
+    }
+  });
+}
+
+function clearOrders() {
+  if (!confirm('Clear ALL orders for today?')) return;
+  fetch(DB + '/orders.json', { method: 'DELETE' }).then(function() { alert('Orders cleared.'); });
 }
 
 // ---- MIC LOGIC ----
@@ -193,7 +336,6 @@ function startListening(meal) {
     r.continuous = true;
     r.interimResults = true;
     r.maxAlternatives = 1;
-
     r.onresult = function(e) {
       var interim = '';
       for (var i = e.resultIndex; i < e.results.length; i++) {
@@ -202,7 +344,6 @@ function startListening(meal) {
       }
       document.getElementById('live-' + meal).textContent = allFinalText + interim;
     };
-
     r.onend = function() {
       if (!stopping && activeMeal === meal) {
         setTimeout(function() { if (!stopping && activeMeal === meal) doStart(); }, 100);
@@ -213,7 +354,6 @@ function startListening(meal) {
         document.getElementById('live-' + meal).textContent = parsed.length + ' item(s) recorded.';
       }
     };
-
     r.onerror = function(err) { if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error); };
     recog = r;
     try { recog.start(); } catch(ex) {}
@@ -239,43 +379,14 @@ function removeItem(meal, idx) {
   renderTags(meal);
 }
 
-// ---- PUBLISH ----
-function publishMenu() {
-  var hasAny = items.b.length > 0 || items.l.length > 0 || items.d.length > 0;
-  if (!hasAny) { alert('Please record at least one meal before publishing.'); return; }
-  var menu = { b: items.b, l: items.l, d: items.d, publishedAt: Date.now() };
-  fetch(DB + '/menu/today.json', { method: 'PUT', body: JSON.stringify(menu) })
-    .then(function() {
-      var t = new Date().toLocaleTimeString();
-      document.getElementById('publishStatus').textContent = '✅ Menu published at ' + t + ' — order takers can now take orders!';
-    });
-}
-
-function checkPublishStatus() {
-  fetch(DB + '/menu/today.json').then(function(r){ return r.json(); }).then(function(menu) {
-    if (menu && menu.publishedAt) {
-      var t = new Date(menu.publishedAt).toLocaleTimeString();
-      document.getElementById('publishStatus').textContent = '✅ Menu last published at ' + t;
-      // Reload items from Firebase
-      items.b = menu.b || [];
-      items.l = menu.l || [];
-      items.d = menu.d || [];
-      renderTags('b'); renderTags('l'); renderTags('d');
-    }
-  });
-}
-
-function clearOrders() {
-  if (!confirm('Clear ALL orders for today? This cannot be undone.')) return;
-  fetch(DB + '/orders.json', { method: 'DELETE' }).then(function() {
-    alert('Orders cleared.');
-  });
-}
-
 // ---- ORDERS & TOTALS ----
 function loadOrders() {
   fetch(DB + '/orders.json').then(function(r){ return r.json(); }).then(function(data) {
-    if (!data) { document.getElementById('totalsOut').innerHTML = '<p style="color:#888;text-align:center;padding:20px">No orders yet.</p>'; document.getElementById('ordersOut').innerHTML = ''; return; }
+    if (!data) {
+      document.getElementById('totalsOut').innerHTML = '<p style="color:#888;text-align:center;padding:20px">No orders yet.</p>';
+      document.getElementById('ordersOut').innerHTML = '';
+      return;
+    }
     var orders = Object.values(data);
     orders.sort(function(a,b){ return a.room.localeCompare(b.room); });
     buildTotals(orders);
@@ -338,9 +449,7 @@ function translate(en) {
   var key = en.toLowerCase().trim();
   if (dict[key]) return dict[key];
   var words = key.split(' ');
-  for (var i = 0; i < words.length; i++) {
-    if (dict[words[i]]) return dict[words[i]];
-  }
+  for (var i = 0; i < words.length; i++) { if (dict[words[i]]) return dict[words[i]]; }
   return en;
 }
 </script>
