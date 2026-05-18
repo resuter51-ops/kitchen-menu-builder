@@ -365,7 +365,37 @@ function startListening(meal) {
   // Items are parsed only when user stops — no mid-stream parsing to avoid duplicates
   var allFinalText = '';
 
-  recog.onresult = function(e) {
+  recog.onresult = handleResult;
+  recog.onerror = handleError;
+
+  recog.onend = function() {
+    if (!stopping && activeMeal === meal) {
+      // Browser auto-stopped — restart using a named function so closure stays intact
+      setTimeout(function(){
+        if (!stopping && activeMeal === meal) {
+          var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
+          var r2 = new SR2();
+          r2.lang = 'en-US';
+          r2.continuous = true;
+          r2.interimResults = true;
+          r2.maxAlternatives = 1;
+          r2.onresult = handleResult;
+          r2.onend = handleEnd;
+          r2.onerror = handleError;
+          recog = r2;
+          try { recog.start(); } catch(ex){}
+        }
+      }, 100);
+    } else {
+      // User tapped STOP — parse and save
+      var parsed = parseText(allFinalText);
+      items[meal] = parsed;
+      renderItems(meal);
+      updateCount(meal);
+    }
+  };
+
+  function handleResult(e) {
     var interim = '';
     for (var i = e.resultIndex; i < e.results.length; i++) {
       if (e.results[i].isFinal) {
@@ -374,46 +404,39 @@ function startListening(meal) {
         interim += e.results[i][0].transcript;
       }
     }
-    // Show live preview of what's been said so far (not parsed yet, just raw text)
     showLiveRaw(meal, allFinalText, interim);
-  };
+  }
 
-  recog.onend = function() {
+  function handleEnd() {
     if (!stopping && activeMeal === meal) {
-      // Browser auto-stopped — restart and keep the same allFinalText
-      var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
-      var r2 = new SR2();
-      r2.lang = 'en-US';
-      r2.continuous = true;
-      r2.interimResults = true;
-      r2.maxAlternatives = 1;
-
-      r2.onresult = recog.onresult; // reuse same handler (closure shares allFinalText)
-
-      r2.onend = recog.onend; // reuse same handler
-
-      r2.onerror = function(err) {
-        if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
-      };
-
-      recog = r2;
       setTimeout(function(){
         if (!stopping && activeMeal === meal) {
+          var SR2 = window.SpeechRecognition || window.webkitSpeechRecognition;
+          var r2 = new SR2();
+          r2.lang = 'en-US';
+          r2.continuous = true;
+          r2.interimResults = true;
+          r2.maxAlternatives = 1;
+          r2.onresult = handleResult;
+          r2.onend = handleEnd;
+          r2.onerror = handleError;
+          recog = r2;
           try { recog.start(); } catch(ex){}
         }
       }, 100);
     } else {
-      // User tapped STOP — now parse and save
       var parsed = parseText(allFinalText);
       items[meal] = parsed;
       renderItems(meal);
       updateCount(meal);
     }
-  };
+  }
 
-  recog.onerror = function(err) {
+  function handleError(err) {
     if (err.error !== 'no-speech' && err.error !== 'aborted') console.log(err.error);
-  };
+  }
+
+
 
   try { recog.start(); } catch(ex) {}
 }
